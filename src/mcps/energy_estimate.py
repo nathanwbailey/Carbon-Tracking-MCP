@@ -18,10 +18,10 @@ We are assuming that one is smart and keeps context window at roughly half the m
     ~130                    110                 540
     ~10,000                 200                 990
     ~100,000                390                1,950
-    ~500,000               1,267               6,336
+    ~500,000               1,280               6,400
 
-This module uses the 500K-token anchor directly (input_wh_per_mtok=1,267,
-output_wh_per_mtok=6,336) as a fixed rate for every request, on the
+This module uses the 500K-token anchor directly (input_wh_per_mtok=1,280,
+output_wh_per_mtok=6,400) as a fixed rate for every request, on the
 assumption that a well-managed agent session runs at roughly that context
 length -- rather than fitting a power law across the anchor points and
 extrapolating to other context lengths.
@@ -80,8 +80,8 @@ from mcps.carbon_equivalents import co2_summary
 # --- Fixed rates, anchored at 500K-token context ---------------------------
 # Our 500K-context anchor point, used directly (no power-law fit/
 # extrapolation, no per-model pricing table -- see module docstring).
-_INPUT_WH_PER_MTOK = 1_267.0
-_OUTPUT_WH_PER_MTOK = 6_336.0
+_INPUT_WH_PER_MTOK = 1_280.0
+_OUTPUT_WH_PER_MTOK = 6_400.0
 
 # Cache pricing ratios, applied to the input rate (see module docstring):
 # Anthropic prices cache reads at ~1/10th the cost of input tokens, and
@@ -96,6 +96,9 @@ _CACHE_WRITE_WH_PER_MTOK = _INPUT_WH_PER_MTOK * _CACHE_WRITE_RATIO
 
 @dataclass
 class EnergyRates:
+    """Fixed energy rates (Wh per million tokens) for a Claude Code or Codex request,
+    anchored at 500K-token context (see module docstring)."""
+
     input: float = _INPUT_WH_PER_MTOK
     output: float = _OUTPUT_WH_PER_MTOK
     cache_read: float = _CACHE_READ_WH_PER_MTOK

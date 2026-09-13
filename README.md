@@ -48,6 +48,8 @@ Example output:
 
 `estimated_kg_co2` and `comparisons` (both tools' full comparison list is longer than shown above — see `carbon_equivalents.json`) convert the Wh estimate into CO2eq using a rough UK grid carbon intensity figure, then express it against everyday activities (washing machine cycles, EV charges, flights, ...). See "CO2eq comparisons" below.
 
+Both tools return a typed, field-described [pydantic](https://docs.pydantic.dev/) model (`src/mcps/schema.py`), so MCP clients get a real JSON schema for the response shape rather than an untyped object. If a session/project can't be found, the tool raises a proper MCP tool error instead of returning a disguised "successful" result.
+
 On the Claude Code server, `current_session_energy` identifies "this chat" via the `CLAUDE_CODE_SESSION_ID` environment variable that Claude Code sets on every process it launches (including the server). On the Codex server, it's identified via the `CODEX_THREAD_ID` environment variable, resolved to a rollout file through Codex's `state_5.sqlite` thread index (falling back to a filename scan under `~/.codex/sessions/` if the thread isn't indexed). Either tool's `collate_project_sessions_energy` then sums every other session belonging to the current project — every sibling `.jsonl` for Claude Code, every indexed thread with a matching `cwd` for Codex.
 
 ## Install
@@ -124,6 +126,7 @@ Same caveat as above: this is a rough, directional comparison, not an audited fi
 
 ```
 src/mcps/
+  schema.py                # pydantic models (with field descriptions) for every tool input/output
   energy_estimate.py       # the energy model + Claude Code/Codex session-log parsers (also runnable as a CLI)
   carbon_equivalents.py    # Wh -> kgCO2eq conversion + everyday-activity comparisons
   carbon_equivalents.json  # the comparison database (grid intensity + activity list)

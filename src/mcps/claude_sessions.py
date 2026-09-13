@@ -1,10 +1,8 @@
 """
 Session discovery helpers for Claude Code (~/.claude/projects/**/*.jsonl).
 
-No environment-variable reads happen in this module -- callers (stdio and
-HTTP server entrypoints) resolve a session_id or cwd from whatever source
-fits their transport (env var for stdio, explicit tool parameter for HTTP)
-and pass it in here.
+No environment-variable reads happen in this module -- callers resolve a
+session_id or cwd from whatever source fits their transport and pass it in.
 """
 
 from __future__ import annotations

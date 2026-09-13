@@ -4,9 +4,9 @@ Shared MCP tool-result shaping for the Claude Code and Codex energy servers.
 server_claude.py and server_codex.py discover sessions completely
 differently (JSONL glob under ~/.claude/projects vs. a sqlite thread-index
 lookup under ~/.codex), but once each has a (request_count, wh) pair or a
-list of already-shaped per-session dicts, the response shape they build is
-identical -- this module is the one place that shape is defined, so the two
-providers can't drift apart from each other.
+list of already-shaped SessionSummary models, the response shape they
+build is identical -- this module is the one place that shape is defined,
+so the two providers can't drift apart from each other.
 """
 
 from __future__ import annotations
