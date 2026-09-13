@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from mcps.carbon_equivalents import co2_comparisons, co2_summary, kwh_to_co2_kg, load_equivalents, wh_to_co2_kg
+from mcps.schema import CO2Comparison
 
 
 class CarbonEquivalentsTests(unittest.TestCase):
@@ -49,7 +50,7 @@ class CarbonEquivalentsTests(unittest.TestCase):
 
             comparisons = co2_comparisons(1.0, path)
 
-            self.assertEqual(comparisons, [{"id": "half_kg", "label": "half kg item", "count": 2.0}])
+            self.assertEqual(comparisons, [CO2Comparison(id="half_kg", label="half kg item", count=2.0)])
 
     def test_co2_summary_reports_kg_and_comparisons(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -66,8 +67,8 @@ class CarbonEquivalentsTests(unittest.TestCase):
 
             summary = co2_summary(1000, intensity_gco2_per_kwh=100, path=path)
 
-            self.assertAlmostEqual(summary["estimated_kg_co2"], 0.1)
-            self.assertEqual(summary["comparisons"], [{"id": "half_kg", "label": "half kg item", "count": 0.2}])
+            self.assertAlmostEqual(summary.estimated_kg_co2, 0.1)
+            self.assertEqual(summary.comparisons, [CO2Comparison(id="half_kg", label="half kg item", count=0.2)])
 
 
 if __name__ == "__main__":

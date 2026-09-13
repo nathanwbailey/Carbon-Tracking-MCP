@@ -6,6 +6,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from fastmcp.exceptions import ToolError
+
 from mcps import codex_sessions
 from mcps.stdio import server_codex
 
@@ -50,17 +52,15 @@ class CodexServerTests(unittest.TestCase):
             ):
                 result = server_codex.current_session_energy()
 
-            self.assertEqual(result["provider"], "codex")
-            self.assertEqual(result["session_id"], "thread")
-            self.assertEqual(result["request_count"], 1)
-            self.assertIn("estimated_kg_co2", result)
-            self.assertIn("comparisons", result)
+            self.assertEqual(result.provider, "codex")
+            self.assertEqual(result.session_id, "thread")
+            self.assertEqual(result.request_count, 1)
+            self.assertIsInstance(result.estimated_kg_co2, float)
+            self.assertTrue(result.comparisons)
 
     def test_current_session_energy_errors_without_env_var(self):
-        with mock.patch.dict(os.environ, {}, clear=True):
-            result = server_codex.current_session_energy()
-
-        self.assertIn("error", result)
+        with mock.patch.dict(os.environ, {}, clear=True), self.assertRaises(ToolError):
+            server_codex.current_session_energy()
 
     def test_collate_project_sessions_uses_only_current_codex_cwd(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -85,10 +85,10 @@ class CodexServerTests(unittest.TestCase):
             ):
                 result = server_codex.collate_project_sessions_energy()
 
-            self.assertEqual(result["provider"], "codex")
-            self.assertEqual(result["session_count"], 1)
-            self.assertEqual(result["sessions"][0]["session_id"], "current")
-            self.assertIn("estimated_kg_co2", result)
+            self.assertEqual(result.provider, "codex")
+            self.assertEqual(result.session_count, 1)
+            self.assertEqual(result.sessions[0].session_id, "current")
+            self.assertIsInstance(result.estimated_kg_co2, float)
 
 
 if __name__ == "__main__":

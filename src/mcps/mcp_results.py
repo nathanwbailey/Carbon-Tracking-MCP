@@ -14,25 +14,34 @@ from __future__ import annotations
 from pathlib import Path
 
 from mcps.carbon_equivalents import co2_summary
+from mcps.schema import CollatedEnergyResult, SessionEnergyResult, SessionSummary
 
 
-def session_energy_result(provider: str, session_id: str, file: Path, request_count: int, wh: float) -> dict:
-    return {
-        "provider": provider,
-        "session_id": session_id,
-        "file": str(file),
-        "request_count": request_count,
-        "estimated_wh": round(wh, 3),
-        **co2_summary(wh),
-    }
+def session_energy_result(
+    provider: str, session_id: str, file: Path, request_count: int, wh: float
+) -> SessionEnergyResult:
+    summary = co2_summary(wh)
+    return SessionEnergyResult(
+        provider=provider,
+        session_id=session_id,
+        file=str(file),
+        request_count=request_count,
+        estimated_wh=round(wh, 3),
+        estimated_kg_co2=summary.estimated_kg_co2,
+        comparisons=summary.comparisons,
+    )
 
 
-def collated_energy_result(provider: str, project_dir: Path, sessions: list[dict], total_wh: float) -> dict:
-    return {
-        "provider": provider,
-        "project_dir": str(project_dir),
-        "session_count": len(sessions),
-        "total_estimated_wh": round(total_wh, 3),
-        "sessions": sessions,
-        **co2_summary(total_wh),
-    }
+def collated_energy_result(
+    provider: str, project_dir: Path, sessions: list[SessionSummary], total_wh: float
+) -> CollatedEnergyResult:
+    summary = co2_summary(total_wh)
+    return CollatedEnergyResult(
+        provider=provider,
+        project_dir=str(project_dir),
+        session_count=len(sessions),
+        total_estimated_wh=round(total_wh, 3),
+        sessions=sessions,
+        estimated_kg_co2=summary.estimated_kg_co2,
+        comparisons=summary.comparisons,
+    )

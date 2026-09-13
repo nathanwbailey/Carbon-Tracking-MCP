@@ -15,6 +15,8 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from mcps.schema import CO2Comparison, CO2Summary
+
 _DATA_PATH = Path(__file__).parent / "carbon_equivalents.json"
 
 UK_GRID_GCO2_PER_KWH = 141.0
@@ -52,12 +54,16 @@ def load_equivalents(path: str | Path = _DATA_PATH) -> list[Equivalent]:
     ]
 
 
-def co2_comparisons(kg_co2: float, path: str | Path = _DATA_PATH) -> list[dict]:
+def co2_comparisons(kg_co2: float, path: str | Path = _DATA_PATH) -> list[CO2Comparison]:
     """How many of each equivalent a given kgCO2eq total represents."""
-    return [{"id": eq.id, "label": eq.label, "count": round(kg_co2 / eq.kg_co2, 2)} for eq in load_equivalents(path)]
+    return [
+        CO2Comparison(id=eq.id, label=eq.label, count=round(kg_co2 / eq.kg_co2, 2)) for eq in load_equivalents(path)
+    ]
 
 
-def co2_summary(wh: float, intensity_gco2_per_kwh: float = UK_GRID_GCO2_PER_KWH, path: str | Path = _DATA_PATH) -> dict:
+def co2_summary(
+    wh: float, intensity_gco2_per_kwh: float = UK_GRID_GCO2_PER_KWH, path: str | Path = _DATA_PATH
+) -> CO2Summary:
     """kgCO2eq for an energy estimate (Wh) plus everyday-activity comparisons."""
     kg_co2 = wh_to_co2_kg(wh, intensity_gco2_per_kwh)
-    return {"estimated_kg_co2": round(kg_co2, 4), "comparisons": co2_comparisons(kg_co2, path)}
+    return CO2Summary(estimated_kg_co2=round(kg_co2, 4), comparisons=co2_comparisons(kg_co2, path))

@@ -265,9 +265,9 @@ def main() -> None:
     print(f"Estimated session energy: {wh:.1f} Wh")
 
     summary = co2_summary(wh)
-    print(f"Estimated CO2eq: {summary['estimated_kg_co2']:.3f} kg (UK grid average)")
-    for comparison in summary["comparisons"]:
-        print(f"  ~ {comparison['count']:g} x {comparison['label']}")
+    print(f"Estimated CO2eq: {summary.estimated_kg_co2:.3f} kg (UK grid average)")
+    for comparison in summary.comparisons:
+        print(f"  ~ {comparison.count:g} x {comparison.label}")
 
 
 if __name__ == "__main__":
