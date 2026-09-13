@@ -131,4 +131,4 @@ server_codex.py           # FastMCP server for Codex sessions
 
 ## License
 
-No license specified yet — all rights reserved by default until one is added.
+[MIT](LICENSE)
