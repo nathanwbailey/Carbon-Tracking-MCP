@@ -20,7 +20,7 @@ Example output:
   "session_id": "afc721a3-0d77-4c5f-b1f5-24074d03fa7d",
   "file": "/Users/you/.claude/projects/-Users-you-my-project/afc721a3-....jsonl",
   "request_count": 60,
-  "estimated_wh": 1018.06,
+  "estimated_kwh": 1.018,
   "estimated_kg_co2": 0.144,
   "comparisons": [
     {"id": "washing_machine_cycle", "label": "washing machine cycle", "count": 0.14},
@@ -33,11 +33,11 @@ Example output:
 {
   "project_dir": "/Users/you/.claude/projects/-Users-you-my-project",
   "session_count": 3,
-  "total_estimated_wh": 1545.16,
+  "total_estimated_kwh": 1.545,
   "sessions": [
-    {"session_id": "afc721a3-...", "request_count": 60, "estimated_wh": 1018.06},
-    {"session_id": "8ee8cb6f-...", "request_count": 5, "estimated_wh": 73.42},
-    {"session_id": "2aabc643-...", "request_count": 38, "estimated_wh": 860.32}
+    {"session_id": "afc721a3-...", "request_count": 60, "estimated_kwh": 1.018},
+    {"session_id": "8ee8cb6f-...", "request_count": 5, "estimated_kwh": 0.073},
+    {"session_id": "2aabc643-...", "request_count": 38, "estimated_kwh": 0.86}
   ],
   "estimated_kg_co2": 0.218,
   "comparisons": [
@@ -46,7 +46,7 @@ Example output:
 }
 ```
 
-`estimated_kg_co2` and `comparisons` (both tools' full comparison list is longer than shown above — see `carbon_equivalents.json`) convert the Wh estimate into CO2eq using a rough UK grid carbon intensity figure, then express it against everyday activities (washing machine cycles, EV charges, flights, ...). See "CO2eq comparisons" below.
+`estimated_kg_co2` and `comparisons` (both tools' full comparison list is longer than shown above — see `carbon_equivalents.json`) convert the estimated energy into CO2eq using a rough UK grid carbon intensity figure, then express it against everyday activities (washing machine cycles, EV charges, flights, ...). See "CO2eq comparisons" below.
 
 Both tools return a typed, field-described [pydantic](https://docs.pydantic.dev/) model (`src/mcps/schema.py`), so MCP clients get a real JSON schema for the response shape rather than an untyped object. If a session/project can't be found, the tool raises a proper MCP tool error instead of returning a disguised "successful" result.
 
@@ -102,7 +102,7 @@ uv run carbon-tracking-energy-estimate ~/.claude/projects/<project>/<session-id>
 
 ```
 60 deduplicated requests
-Estimated session energy: 1018.1 Wh
+Estimated session energy: 1.0181 kWh
 ```
 
 ## The energy model

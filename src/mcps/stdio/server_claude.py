@@ -44,7 +44,7 @@ def _current_claude_project_dir() -> Path | None:
 
 @mcp.tool()
 def current_session_energy() -> SessionEnergyResult:
-    """Estimated energy (Wh) and CO2eq for the calling Claude Code session."""
+    """Estimated energy (kWh) and CO2eq for the calling Claude Code session."""
     session_id = os.environ.get("CLAUDE_CODE_SESSION_ID")
     if not session_id:
         raise ToolError("CLAUDE_CODE_SESSION_ID is not set.")
@@ -69,7 +69,9 @@ def collate_project_sessions_energy() -> CollatedEnergyResult:
     total_wh = 0.0
     for f in files:
         request_count, wh = estimate_session_from_file(f)
-        sessions.append(SessionSummary(session_id=f.stem, request_count=request_count, estimated_wh=round(wh, 3)))
+        sessions.append(
+            SessionSummary(session_id=f.stem, request_count=request_count, estimated_kwh=round(wh / 1000, 3))
+        )
         total_wh += wh
 
     return collated_energy_result("claude", project_dir, sessions, total_wh)

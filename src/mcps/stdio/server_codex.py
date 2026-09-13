@@ -33,7 +33,7 @@ mcp = FastMCP("carbon-tracking-energy-codex")
 
 @mcp.tool()
 def current_session_energy() -> SessionEnergyResult:
-    """Estimated energy (Wh) and CO2eq for the calling Codex session."""
+    """Estimated energy (kWh) and CO2eq for the calling Codex session."""
     thread_id = os.environ.get("CODEX_THREAD_ID")
     if not thread_id:
         raise ToolError("CODEX_THREAD_ID is not set.")
@@ -55,7 +55,9 @@ def collate_project_sessions_energy() -> CollatedEnergyResult:
     total_wh = 0.0
     for thread_id, session_file in codex_sessions.codex_project_sessions(Path.cwd(), codex_sessions.CODEX_STATE_DB):
         request_count, wh = estimate_session_from_file(session_file, "codex")
-        sessions.append(SessionSummary(session_id=thread_id, request_count=request_count, estimated_wh=round(wh, 3)))
+        sessions.append(
+            SessionSummary(session_id=thread_id, request_count=request_count, estimated_kwh=round(wh / 1000, 3))
+        )
         total_wh += wh
 
     if not sessions:

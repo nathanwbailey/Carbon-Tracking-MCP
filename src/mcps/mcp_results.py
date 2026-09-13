@@ -26,7 +26,7 @@ def session_energy_result(
         session_id=session_id,
         file=str(file),
         request_count=request_count,
-        estimated_wh=round(wh, 3),
+        estimated_kwh=round(wh / 1000, 3),
         estimated_kg_co2=summary.estimated_kg_co2,
         comparisons=summary.comparisons,
     )
@@ -40,7 +40,7 @@ def collated_energy_result(
         provider=provider,
         project_dir=str(project_dir),
         session_count=len(sessions),
-        total_estimated_wh=round(total_wh, 3),
+        total_estimated_kwh=round(total_wh / 1000, 3),
         sessions=sessions,
         estimated_kg_co2=summary.estimated_kg_co2,
         comparisons=summary.comparisons,

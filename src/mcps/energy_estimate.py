@@ -96,7 +96,8 @@ _CACHE_WRITE_WH_PER_MTOK = _INPUT_WH_PER_MTOK * _CACHE_WRITE_RATIO
 
 @dataclass
 class EnergyRates:
-    """Fixed energy rates (Wh per million tokens) for a Claude Code or Codex request,
+    """Fixed energy rates (Wh per million tokens)
+    for a Claude Code or Codex request,
     anchored at 500K-token context (see module docstring)."""
 
     input: float = _INPUT_WH_PER_MTOK
@@ -117,6 +118,9 @@ def estimate_request_energy_wh(
     request, regardless of its actual context length or model."""
     cache_write_tokens = cache_write_5m_tokens + cache_write_1h_tokens
     rates = EnergyRates()
+    print(
+        f"Estimating energy for request: input={input_tokens}, output={output_tokens}, cache_read={cache_read_tokens}, cache_write={cache_write_tokens}"
+    )
     return (
         input_tokens * rates.input
         + output_tokens * rates.output
@@ -265,7 +269,7 @@ def main() -> None:
 
     n, wh = estimate_session_from_file(args.session_jsonl, args.provider)
     print(f"{n} deduplicated requests")
-    print(f"Estimated session energy: {wh:.1f} Wh")
+    print(f"Estimated session energy: {wh / 1000:.4f} kWh")
 
     summary = co2_summary(wh)
     print(f"Estimated CO2eq: {summary.estimated_kg_co2:.3f} kg (UK grid average)")

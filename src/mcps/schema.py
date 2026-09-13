@@ -27,7 +27,7 @@ class CO2Summary(BaseModel):
 class SessionSummary(BaseModel):
     session_id: str = Field(description="Claude Code session ID or Codex thread ID for this session.")
     request_count: int = Field(description="Number of deduplicated API requests/turns in this session.")
-    estimated_wh: float = Field(description="Estimated energy used by this session, in watt-hours.")
+    estimated_kwh: float = Field(description="Estimated energy used by this session, in kilowatt-hours.")
 
 
 class SessionEnergyResult(BaseModel):
@@ -35,7 +35,7 @@ class SessionEnergyResult(BaseModel):
     session_id: str = Field(description="Claude Code session ID or Codex thread ID being reported on.")
     file: str = Field(description="Absolute path to the session's local log file that was parsed.")
     request_count: int = Field(description="Number of deduplicated API requests/turns in this session.")
-    estimated_wh: float = Field(description="Estimated energy used by this session, in watt-hours.")
+    estimated_kwh: float = Field(description="Estimated energy used by this session, in kilowatt-hours.")
     estimated_kg_co2: float = Field(description="Estimated CO2-equivalent emissions for this session, in kilograms.")
     comparisons: list[CO2Comparison] = Field(
         description="Everyday-activity equivalents for this session's estimated CO2eq."
@@ -46,7 +46,9 @@ class CollatedEnergyResult(BaseModel):
     provider: str = Field(description="Coding-agent provider these sessions belong to ('claude' or 'codex').")
     project_dir: str = Field(description="Absolute path to the project's session-log directory that was scanned.")
     session_count: int = Field(description="Number of sessions included in this total.")
-    total_estimated_wh: float = Field(description="Total estimated energy across all included sessions, in watt-hours.")
+    total_estimated_kwh: float = Field(
+        description="Total estimated energy across all included sessions, in kilowatt-hours."
+    )
     sessions: list[SessionSummary] = Field(description="Per-session breakdown of request count and estimated energy.")
     estimated_kg_co2: float = Field(description="Estimated CO2-equivalent emissions for the total, in kilograms.")
     comparisons: list[CO2Comparison] = Field(description="Everyday-activity equivalents for the total estimated CO2eq.")
