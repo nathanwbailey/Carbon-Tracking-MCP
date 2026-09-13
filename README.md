@@ -1,0 +1,120 @@
+# carbon-tracking-mcp
+
+Two MCP servers that estimate the energy used by your Claude Code and Codex sessions, so you can ask for it directly from within a chat: "how much energy has this chat used?" or "how much has this whole project cost?"
+
+They wrap a small pricing-ratio energy model (`energy_estimate.py`) around each tool's local session logs — no telemetry, no network calls. `server_claude.py` reads `~/.claude/projects/**/*.jsonl`; `server_codex.py` reads Codex's local thread index (`~/.codex/state_5.sqlite`) and rollout logs under `~/.codex/sessions/`.
+
+## What it does
+
+Each server exposes the same two MCP tools, scoped to its own provider:
+
+| Tool | Answers |
+|---|---|
+| `current_session_energy` | How much energy has *this* chat used so far? |
+| `collate_project_sessions_energy` | How much energy has *every* chat in this project used, in total? |
+
+Example output:
+
+```json
+{
+  "session_id": "afc721a3-0d77-4c5f-b1f5-24074d03fa7d",
+  "file": "/Users/you/.claude/projects/-Users-you-my-project/afc721a3-....jsonl",
+  "request_count": 60,
+  "estimated_wh": 1018.06,
+  "estimated_kg_co2": 0.144,
+  "comparisons": [
+    {"id": "washing_machine_cycle", "label": "washing machine cycle", "count": 0.14},
+    {"id": "kettle_boil", "label": "kettle boil", "count": 1.44}
+  ]
+}
+```
+
+```json
+{
+  "project_dir": "/Users/you/.claude/projects/-Users-you-my-project",
+  "session_count": 3,
+  "total_estimated_wh": 1545.16,
+  "sessions": [
+    {"session_id": "afc721a3-...", "request_count": 60, "estimated_wh": 1018.06},
+    {"session_id": "8ee8cb6f-...", "request_count": 5, "estimated_wh": 73.42},
+    {"session_id": "2aabc643-...", "request_count": 38, "estimated_wh": 860.32}
+  ],
+  "estimated_kg_co2": 0.218,
+  "comparisons": [
+    {"id": "washing_machine_cycle", "label": "washing machine cycle", "count": 0.22}
+  ]
+}
+```
+
+`estimated_kg_co2` and `comparisons` (both tools' full comparison list is longer than shown above — see `carbon_equivalents.json`) convert the Wh estimate into CO2eq using a rough UK grid carbon intensity figure, then express it against everyday activities (washing machine cycles, EV charges, flights, ...). See "CO2eq comparisons" below.
+
+On the Claude Code server, `current_session_energy` identifies "this chat" via the `CLAUDE_CODE_SESSION_ID` environment variable that Claude Code sets on every process it launches (including the server). On the Codex server, it's identified via the `CODEX_THREAD_ID` environment variable, resolved to a rollout file through Codex's `state_5.sqlite` thread index (falling back to a filename scan under `~/.codex/sessions/` if the thread isn't indexed). Either tool's `collate_project_sessions_energy` then sums every other session belonging to the current project — every sibling `.jsonl` for Claude Code, every indexed thread with a matching `cwd` for Codex.
+
+## Install
+
+Requires [uv](https://docs.astral.sh/uv/).
+
+```bash
+git clone https://github.com/<you>/carbon-tracking-mcp.git
+cd carbon-tracking-mcp
+uv sync
+```
+
+Register whichever server(s) you use as **user-scoped** MCP servers (available in every project, not just this one):
+
+```bash
+claude mcp add --scope user carbon-tracking-energy-claude -- uv run --directory /path/to/carbon-tracking-mcp server_claude.py
+claude mcp add --scope user carbon-tracking-energy-codex -- uv run --directory /path/to/carbon-tracking-mcp server_codex.py
+```
+
+Restart or start a new session and the tools above become available. Verify with:
+
+```bash
+claude mcp get carbon-tracking-energy-claude
+claude mcp get carbon-tracking-energy-codex
+```
+
+## Standalone CLI
+
+`energy_estimate.py` also works as a plain script, independent of MCP:
+
+```bash
+uv run energy_estimate.py ~/.claude/projects/<project>/<session-id>.jsonl
+```
+
+```
+60 deduplicated requests
+Estimated session energy: 1018.1 Wh
+```
+
+## The energy model
+
+Follows [Simon P. Couch's methodology](https://simonpcouch.com/blog/2026-01-20-cc-impact/): Wh-per-million-tokens rates are estimated from Epoch AI's ChatGPT-4o energy figures, using the *price ratio* between input/output/cache tokens as a proxy for their *energy ratio* (Anthropic doesn't publish energy numbers directly). This module uses the 500K-token context anchor point as a fixed rate for every request — see the docstring in `energy_estimate.py` for the full anchor table and derivation.
+
+**Read this before trusting the numbers:**
+- "Energy scales with price" is an assumption, not a measurement.
+- Cache-read/cache-write rates are a flat napkin-math ratio applied to the input rate, not real per-model pricing.
+- A single fixed rate is used for every request regardless of its actual context length, so short requests are overestimated and very long ones (near 1M tokens) are underestimated relative to a context-scaled model.
+
+Treat every number here as **order-of-magnitude and directional** — useful for comparing sessions against each other, not as an audited carbon/energy figure.
+
+## CO2eq comparisons
+
+`carbon_equivalents.py` converts an energy estimate (Wh) into kgCO2eq using a grid carbon intensity figure (default: a 2026 UK grid average of 141 gCO2/kWh, from [Purely Energy's 2026 grid report](https://www.purelyenergy.co.uk/grid-report/2026)) and expresses that total against everyday activities defined in `carbon_equivalents.json` — washing machine cycles, EV charges, flights, a kg of beef, and so on. Entries in that file are either `kwh` (converted through the grid intensity) or a direct `kg_co2` figure for things that aren't grid electricity (car miles, flights, food).
+
+Same caveat as above: this is a rough, directional comparison, not an audited figure — grid intensity varies by country, time of day, and year.
+
+## Project layout
+
+```
+energy_estimate.py       # the energy model + Claude Code/Codex session-log parsers (also runnable as a CLI)
+carbon_equivalents.py     # Wh -> kgCO2eq conversion + everyday-activity comparisons
+carbon_equivalents.json   # the comparison database (grid intensity + activity list)
+mcp_results.py            # shared MCP tool-result shaping used by both servers below
+server_claude.py          # FastMCP server for Claude Code sessions
+server_codex.py           # FastMCP server for Codex sessions
+```
+
+## License
+
+No license specified yet — all rights reserved by default until one is added.

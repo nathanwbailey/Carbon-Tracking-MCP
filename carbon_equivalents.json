@@ -1,0 +1,14 @@
+{
+  "grid_intensity_gco2_per_kwh": 141,
+  "grid_intensity_source": "UK grid carbon intensity average (2026), gCO2/kWh -- https://www.purelyenergy.co.uk/grid-report/2026",
+  "items": [
+    {"id": "washing_machine_cycle", "label": "washing machine cycle", "kwh": 1.0},
+    {"id": "tumble_dryer_cycle", "label": "tumble dryer cycle", "kwh": 2.5},
+    {"id": "kettle_boil", "label": "kettle boil", "kwh": 0.1},
+    {"id": "oven_hour", "label": "hour of oven use", "kwh": 2.0},
+    {"id": "ev_full_charge", "label": "full EV charge (60 kWh)", "kwh": 60.0},
+    {"id": "petrol_car_mile", "label": "mile driven in a petrol car", "kg_co2": 0.193},
+    {"id": "short_haul_flight", "label": "short-haul flight per passenger (London-Berlin)", "kg_co2": 118},
+    {"id": "beef_kg", "label": "kg of beef (production)", "kg_co2": 27}
+  ]
+}
