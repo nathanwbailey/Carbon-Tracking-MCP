@@ -1,4 +1,4 @@
-# carbon-tracking-mcp
+# Carbon Tracking MCP
 
 Two MCP servers that estimate the energy used by your Claude Code and Codex sessions, so you can ask for it directly from within a chat: "how much energy has this chat used?" or "how much has this whole project cost?"
 
