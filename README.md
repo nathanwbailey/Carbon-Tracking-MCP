@@ -60,18 +60,32 @@ cd carbon-tracking-mcp
 uv sync
 ```
 
-Register whichever server(s) you use as **user-scoped** MCP servers (available in every project, not just this one):
+Register whichever server(s) you use **globally**, so they're available in every project rather than just this one.
+
+### Claude Code
 
 ```bash
 claude mcp add --scope user carbon-tracking-energy-claude -- uv run --directory /path/to/carbon-tracking-mcp server_claude.py
-claude mcp add --scope user carbon-tracking-energy-codex -- uv run --directory /path/to/carbon-tracking-mcp server_codex.py
 ```
 
-Restart or start a new session and the tools above become available. Verify with:
+Restart or start a new session and the tools become available. Verify with:
 
 ```bash
 claude mcp get carbon-tracking-energy-claude
-claude mcp get carbon-tracking-energy-codex
+```
+
+### Codex
+
+```bash
+codex mcp add carbon-tracking-energy-codex -- uv run --directory /path/to/carbon-tracking-mcp server_codex.py
+```
+
+`codex mcp add` writes to `~/.codex/config.toml`, which Codex CLI, the IDE extension, and the desktop app all share — there's no per-project scope to choose, so this is global by default. Restart or start a new session and check `/mcp` inside Codex to verify the server is connected. Alternatively, add the entry by hand:
+
+```toml
+[mcp_servers.carbon-tracking-energy-codex]
+command = "uv"
+args = ["run", "--directory", "/path/to/carbon-tracking-mcp", "server_codex.py"]
 ```
 
 ## Standalone CLI
