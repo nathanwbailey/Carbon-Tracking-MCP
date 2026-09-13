@@ -1,8 +1,8 @@
 # Carbon Tracking MCP
 
-Two MCP servers that estimate the energy used by your Claude Code and Codex sessions, so you can ask for it directly from within a chat: "how much energy has this chat used?" or "how much has this whole project cost?"
+MCP servers that estimate the energy used by your Claude Code and Codex sessions, so you can ask for it directly from within a chat: "how much energy has this chat used?" or "how much has this whole project cost?"
 
-They wrap a small pricing-ratio energy model (`energy_estimate.py`) around each tool's local session logs — no telemetry, no network calls. `server_claude.py` reads `~/.claude/projects/**/*.jsonl`; `server_codex.py` reads Codex's local thread index (`~/.codex/state_5.sqlite`) and rollout logs under `~/.codex/sessions/`.
+They wrap a small pricing-ratio energy model (`src/mcps/energy_estimate.py`) around each tool's local session logs — no telemetry, no network calls. The Claude Code server reads `~/.claude/projects/**/*.jsonl`; the Codex server reads Codex's local thread index (`~/.codex/state_5.sqlite`) and rollout logs under `~/.codex/sessions/`. Both run over the stdio MCP transport (`src/mcps/stdio/`), spawned fresh per chat by Claude Code/Codex.
 
 ## What it does
 
@@ -60,12 +60,14 @@ cd carbon-tracking-mcp
 uv sync
 ```
 
+This installs console-script entry points (`carbon-tracking-stdio-claude`, `carbon-tracking-stdio-codex`) backed by the `mcps` package under `src/`.
+
 Register whichever server(s) you use **globally**, so they're available in every project rather than just this one.
 
 ### Claude Code
 
 ```bash
-claude mcp add --scope user carbon-tracking-energy-claude -- uv run --directory /path/to/carbon-tracking-mcp server_claude.py
+claude mcp add --scope user carbon-tracking-energy-claude -- uv run --directory /path/to/carbon-tracking-mcp carbon-tracking-stdio-claude
 ```
 
 Restart or start a new session and the tools become available. Verify with:
@@ -77,7 +79,7 @@ claude mcp get carbon-tracking-energy-claude
 ### Codex
 
 ```bash
-codex mcp add carbon-tracking-energy-codex -- uv run --directory /path/to/carbon-tracking-mcp server_codex.py
+codex mcp add carbon-tracking-energy-codex -- uv run --directory /path/to/carbon-tracking-mcp carbon-tracking-stdio-codex
 ```
 
 `codex mcp add` writes to `~/.codex/config.toml`, which Codex CLI, the IDE extension, and the desktop app all share — there's no per-project scope to choose, so this is global by default. Restart or start a new session and check `/mcp` inside Codex to verify the server is connected. Alternatively, add the entry by hand:
@@ -85,15 +87,15 @@ codex mcp add carbon-tracking-energy-codex -- uv run --directory /path/to/carbon
 ```toml
 [mcp_servers.carbon-tracking-energy-codex]
 command = "uv"
-args = ["run", "--directory", "/path/to/carbon-tracking-mcp", "server_codex.py"]
+args = ["run", "--directory", "/path/to/carbon-tracking-mcp", "carbon-tracking-stdio-codex"]
 ```
 
 ## Standalone CLI
 
-`energy_estimate.py` also works as a plain script, independent of MCP:
+`src/mcps/energy_estimate.py` also works as a plain script, independent of MCP:
 
 ```bash
-uv run energy_estimate.py ~/.claude/projects/<project>/<session-id>.jsonl
+uv run carbon-tracking-energy-estimate ~/.claude/projects/<project>/<session-id>.jsonl
 ```
 
 ```
@@ -121,12 +123,16 @@ Same caveat as above: this is a rough, directional comparison, not an audited fi
 ## Project layout
 
 ```
-energy_estimate.py       # the energy model + Claude Code/Codex session-log parsers (also runnable as a CLI)
-carbon_equivalents.py     # Wh -> kgCO2eq conversion + everyday-activity comparisons
-carbon_equivalents.json   # the comparison database (grid intensity + activity list)
-mcp_results.py            # shared MCP tool-result shaping used by both servers below
-server_claude.py          # FastMCP server for Claude Code sessions
-server_codex.py           # FastMCP server for Codex sessions
+src/mcps/
+  energy_estimate.py       # the energy model + Claude Code/Codex session-log parsers (also runnable as a CLI)
+  carbon_equivalents.py    # Wh -> kgCO2eq conversion + everyday-activity comparisons
+  carbon_equivalents.json  # the comparison database (grid intensity + activity list)
+  mcp_results.py           # shared MCP tool-result shaping used by every server below
+  claude_sessions.py       # Claude Code session discovery (glob under ~/.claude/projects)
+  codex_sessions.py        # Codex session discovery (sqlite thread index + ~/.codex/sessions)
+  stdio/
+    server_claude.py       # FastMCP server for Claude Code sessions
+    server_codex.py        # FastMCP server for Codex sessions
 ```
 
 ## License

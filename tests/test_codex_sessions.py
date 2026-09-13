@@ -1,12 +1,10 @@
 import json
-import os
 import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
 
-import server_codex
+from mcps.codex_sessions import codex_project_sessions, find_codex_thread_file
 
 
 def _write_rollout(path, response_id):
@@ -34,33 +32,40 @@ def _create_thread_db(path, rows):
         conn.executemany("INSERT INTO threads VALUES (?, ?, ?)", rows)
 
 
-class CodexServerTests(unittest.TestCase):
-    def test_current_session_energy_reads_codex_thread(self):
+class CodexSessionsTests(unittest.TestCase):
+    def test_find_codex_thread_file_uses_sqlite_index(self):
         with tempfile.TemporaryDirectory() as directory:
             tmp_path = Path(directory)
             rollout = tmp_path / "rollout-thread.jsonl"
             _write_rollout(rollout, "response")
             db = tmp_path / "state.sqlite"
+            sessions_root = tmp_path / "sessions"
+            sessions_root.mkdir()
             _create_thread_db(db, [("thread", str(tmp_path), str(rollout))])
 
-            with mock.patch.object(server_codex, "_CODEX_STATE_DB", db), mock.patch.dict(
-                os.environ, {"CODEX_THREAD_ID": "thread"}, clear=True
-            ):
-                result = server_codex.current_session_energy()
+            self.assertEqual(find_codex_thread_file("thread", db, sessions_root), rollout)
 
-            self.assertEqual(result["provider"], "codex")
-            self.assertEqual(result["session_id"], "thread")
-            self.assertEqual(result["request_count"], 1)
-            self.assertIn("estimated_kg_co2", result)
-            self.assertIn("comparisons", result)
+    def test_find_codex_thread_file_falls_back_to_filename_scan(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tmp_path = Path(directory)
+            db = tmp_path / "state.sqlite"
+            sessions_root = tmp_path / "sessions"
+            sessions_root.mkdir()
+            rollout = sessions_root / "rollout-unindexed-thread.jsonl"
+            _write_rollout(rollout, "response")
 
-    def test_current_session_energy_errors_without_env_var(self):
-        with mock.patch.dict(os.environ, {}, clear=True):
-            result = server_codex.current_session_energy()
+            self.assertEqual(find_codex_thread_file("unindexed-thread", db, sessions_root), rollout)
 
-        self.assertIn("error", result)
+    def test_find_codex_thread_file_miss(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tmp_path = Path(directory)
+            db = tmp_path / "state.sqlite"
+            sessions_root = tmp_path / "sessions"
+            sessions_root.mkdir()
 
-    def test_collate_project_sessions_uses_only_current_codex_cwd(self):
+            self.assertIsNone(find_codex_thread_file("missing", db, sessions_root))
+
+    def test_codex_project_sessions_matches_only_given_cwd(self):
         with tempfile.TemporaryDirectory() as directory:
             tmp_path = Path(directory)
             current = tmp_path / "current.jsonl"
@@ -76,15 +81,16 @@ class CodexServerTests(unittest.TestCase):
                 ],
             )
 
-            with mock.patch.object(server_codex, "_CODEX_STATE_DB", db), mock.patch.object(
-                server_codex.Path, "cwd", return_value=tmp_path
-            ), mock.patch.dict(os.environ, {"CODEX_THREAD_ID": "current"}, clear=True):
-                result = server_codex.collate_project_sessions_energy()
+            results = codex_project_sessions(tmp_path, db)
 
-            self.assertEqual(result["provider"], "codex")
-            self.assertEqual(result["session_count"], 1)
-            self.assertEqual(result["sessions"][0]["session_id"], "current")
-            self.assertIn("estimated_kg_co2", result)
+            self.assertEqual(results, [("current", current)])
+
+    def test_codex_project_sessions_missing_db_returns_empty(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tmp_path = Path(directory)
+            db = tmp_path / "missing.sqlite"
+
+            self.assertEqual(codex_project_sessions(tmp_path, db), [])
 
 
 if __name__ == "__main__":

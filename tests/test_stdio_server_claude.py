@@ -5,7 +5,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import server_claude
+from mcps import claude_sessions
+from mcps.stdio import server_claude
 
 
 class ClaudeServerTests(unittest.TestCase):
@@ -25,8 +26,9 @@ class ClaudeServerTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with mock.patch.object(server_claude, "_CLAUDE_PROJECTS_ROOT", projects_root), mock.patch.dict(
-                os.environ, {"CLAUDE_CODE_SESSION_ID": "claude-thread"}, clear=True
+            with (
+                mock.patch.object(claude_sessions, "CLAUDE_PROJECTS_ROOT", projects_root),
+                mock.patch.dict(os.environ, {"CLAUDE_CODE_SESSION_ID": "claude-thread"}, clear=True),
             ):
                 result = server_claude.current_session_energy()
 
@@ -58,8 +60,9 @@ class ClaudeServerTests(unittest.TestCase):
                     encoding="utf-8",
                 )
 
-            with mock.patch.object(server_claude, "_CLAUDE_PROJECTS_ROOT", projects_root), mock.patch.dict(
-                os.environ, {"CLAUDE_CODE_SESSION_ID": "one"}, clear=True
+            with (
+                mock.patch.object(claude_sessions, "CLAUDE_PROJECTS_ROOT", projects_root),
+                mock.patch.dict(os.environ, {"CLAUDE_CODE_SESSION_ID": "one"}, clear=True),
             ):
                 result = server_claude.collate_project_sessions_energy()
 

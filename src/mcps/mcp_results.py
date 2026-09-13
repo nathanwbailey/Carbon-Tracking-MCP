@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from carbon_equivalents import co2_summary
+from mcps.carbon_equivalents import co2_summary
 
 
 def session_energy_result(provider: str, session_id: str, file: Path, request_count: int, wh: float) -> dict:

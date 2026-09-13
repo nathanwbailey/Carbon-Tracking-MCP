@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from energy_estimate import estimate_request_energy_wh, estimate_session_from_file, load_codex_session
+from mcps.energy_estimate import estimate_request_energy_wh, estimate_session_from_file, load_codex_session
 
 
 class CodexSessionTests(unittest.TestCase):
@@ -99,8 +99,8 @@ class CodexSessionTests(unittest.TestCase):
                             "response_id": "response",
                             "usage": {
                                 "input_tokens": 1_000_000,
-                        "cached_input_tokens": 500_000,
-                        "cache_write_input_tokens": 250_000,
+                                "cached_input_tokens": 500_000,
+                                "cache_write_input_tokens": 250_000,
                                 "output_tokens": 1_000_000,
                                 "reasoning_output_tokens": 900_000,
                             },

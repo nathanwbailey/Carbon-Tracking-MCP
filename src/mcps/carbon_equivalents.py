@@ -54,10 +54,7 @@ def load_equivalents(path: str | Path = _DATA_PATH) -> list[Equivalent]:
 
 def co2_comparisons(kg_co2: float, path: str | Path = _DATA_PATH) -> list[dict]:
     """How many of each equivalent a given kgCO2eq total represents."""
-    return [
-        {"id": eq.id, "label": eq.label, "count": round(kg_co2 / eq.kg_co2, 2)}
-        for eq in load_equivalents(path)
-    ]
+    return [{"id": eq.id, "label": eq.label, "count": round(kg_co2 / eq.kg_co2, 2)} for eq in load_equivalents(path)]
 
 
 def co2_summary(wh: float, intensity_gco2_per_kwh: float = UK_GRID_GCO2_PER_KWH, path: str | Path = _DATA_PATH) -> dict:

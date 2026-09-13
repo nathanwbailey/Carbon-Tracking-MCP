@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from carbon_equivalents import co2_comparisons, co2_summary, kwh_to_co2_kg, load_equivalents, wh_to_co2_kg
+from mcps.carbon_equivalents import co2_comparisons, co2_summary, kwh_to_co2_kg, load_equivalents, wh_to_co2_kg
 
 
 class CarbonEquivalentsTests(unittest.TestCase):
@@ -38,7 +38,12 @@ class CarbonEquivalentsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "data.json"
             path.write_text(
-                json.dumps({"grid_intensity_gco2_per_kwh": 100, "items": [{"id": "half_kg", "label": "half kg item", "kg_co2": 0.5}]}),
+                json.dumps(
+                    {
+                        "grid_intensity_gco2_per_kwh": 100,
+                        "items": [{"id": "half_kg", "label": "half kg item", "kg_co2": 0.5}],
+                    }
+                ),
                 encoding="utf-8",
             )
 
@@ -50,7 +55,12 @@ class CarbonEquivalentsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "data.json"
             path.write_text(
-                json.dumps({"grid_intensity_gco2_per_kwh": 100, "items": [{"id": "half_kg", "label": "half kg item", "kg_co2": 0.5}]}),
+                json.dumps(
+                    {
+                        "grid_intensity_gco2_per_kwh": 100,
+                        "items": [{"id": "half_kg", "label": "half kg item", "kg_co2": 0.5}],
+                    }
+                ),
                 encoding="utf-8",
             )
 

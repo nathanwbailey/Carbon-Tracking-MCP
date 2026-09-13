@@ -75,7 +75,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from carbon_equivalents import co2_summary
+from mcps.carbon_equivalents import co2_summary
 
 # --- Fixed rates, anchored at 500K-token context ---------------------------
 # Our 500K-context anchor point, used directly (no power-law fit/
@@ -138,6 +138,7 @@ def estimate_session_energy_wh(requests: list[dict]) -> float:
 
 
 # --- Claude Code (JSONL) -------------------------------------------------
+
 
 def load_claude_code_session(path: str | Path) -> list[dict]:
     """Parse a Claude Code JSONL session log (~/.claude/projects/**/*.jsonl),
@@ -267,6 +268,7 @@ def main() -> None:
     print(f"Estimated CO2eq: {summary['estimated_kg_co2']:.3f} kg (UK grid average)")
     for comparison in summary["comparisons"]:
         print(f"  ~ {comparison['count']:g} x {comparison['label']}")
+
 
 if __name__ == "__main__":
     main()
