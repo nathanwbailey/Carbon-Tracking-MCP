@@ -121,7 +121,7 @@ Treat every number here as **order-of-magnitude and directional** — useful for
 
 ## CO2eq comparisons
 
-`carbon_equivalents.py` converts an energy estimate (Wh) into kgCO2eq using a grid carbon intensity figure (default: a 2026 UK grid average of 141 gCO2/kWh, from [Purely Energy's 2026 grid report](https://www.purelyenergy.co.uk/grid-report/2026)) and expresses that total against everyday activities defined in `carbon_equivalents.json` — washing machine cycles, EV charges, flights, a kg of beef, and so on. Entries in that file are either `kwh` (converted through the grid intensity) or a direct `kg_co2` figure for things that aren't grid electricity (car miles, flights, food).
+`carbon_equivalents.py` converts an energy estimate (Wh) into kgCO2eq using a grid carbon intensity figure (default: a 2026 UK grid average of 141 gCO2/kWh, from [Purely Energy's 2026 grid report](https://www.purelyenergy.co.uk/grid-report/2026)) and expresses that total against everyday activities defined in `carbon_equivalents.json` — washing machine cycles, EV charges, flights, a serving of beef, and so on. Entries in that file are direct `kg_co2` figure. See the JSON for sources.
 
 Same caveat as above: this is a rough, directional comparison, not an audited figure — grid intensity varies by country, time of day, and year.
 
