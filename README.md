@@ -107,12 +107,15 @@ Estimated session energy: 1.0181 kWh
 
 ## The energy model
 
-Follows [Simon P. Couch's methodology](https://simonpcouch.com/blog/2026-01-20-cc-impact/): Wh-per-million-tokens rates are estimated from Epoch AI's ChatGPT-4o energy figures, using the *price ratio* between input/output/cache tokens as a proxy for their *energy ratio* (Anthropic doesn't publish energy numbers directly). This module uses the 500K-token context anchor point as a fixed rate for every request — see the docstring in `energy_estimate.py` for the full anchor table and derivation.
+Follows [Simon P. Couch's methodology](https://simonpcouch.com/blog/2026-01-20-cc-impact/): Wh-per-million-tokens rates are estimated from Epoch AI's ChatGPT-4o energy figures, using the *price ratio* between input/output/cache tokens as a proxy for their *energy ratio* (Anthropic doesn't publish energy numbers directly). 
+
+Couch's article was published when models still used 200k token context windows. Models have a context window of 1M tokens now. We assume one is smart and keeps their context window around half this. So, we added 500K-token context as a fourth anchor point, based on code from EpochAI: https://colab.research.google.com/drive/1dnhL0lkjsk-isAH-j02pFUbv1g12hEm1#scrollTo=dN0Ezyr4qXAQ, which is used to compute energy. 
 
 **Read this before trusting the numbers:**
 - "Energy scales with price" is an assumption, not a measurement.
 - Cache-read/cache-write rates are a flat napkin-math ratio applied to the input rate, not real per-model pricing.
 - A single fixed rate is used for every request regardless of its actual context length, so short requests are overestimated and very long ones (near 1M tokens) are underestimated relative to a context-scaled model.
+- EpochAI note that cost/energy scales quadratically with input length as expected due to the attention mechanism. However, there are certainly innovations that improve on quadratic scaling. So this is a pessimistic estimation. 
 
 Treat every number here as **order-of-magnitude and directional** — useful for comparing sessions against each other, not as an audited carbon/energy figure.
 
