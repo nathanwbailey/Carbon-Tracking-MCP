@@ -9,6 +9,7 @@ from unittest import mock
 from fastmcp.exceptions import ToolError
 
 from mcps import codex_sessions
+from mcps.schema import CurrentSessionEnergyInput
 from mcps.stdio import server_codex
 
 
@@ -58,9 +59,63 @@ class CodexServerTests(unittest.TestCase):
             self.assertIsInstance(result.estimated_kg_co2, float)
             self.assertTrue(result.comparisons)
 
-    def test_current_session_energy_errors_without_env_var(self):
-        with mock.patch.dict(os.environ, {}, clear=True), self.assertRaises(ToolError):
-            server_codex.current_session_energy()
+    def test_current_session_energy_prefers_explicit_thread_id_over_env_and_cwd(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tmp_path = Path(directory)
+            wanted = tmp_path / "wanted.jsonl"
+            other = tmp_path / "other.jsonl"
+            _write_rollout(wanted, "wanted")
+            _write_rollout(other, "other")
+            db = tmp_path / "state.sqlite"
+            _create_thread_db(
+                db,
+                [
+                    ("wanted", str(tmp_path), str(wanted)),
+                    ("other", str(tmp_path), str(other)),
+                ],
+            )
+
+            with (
+                mock.patch.object(codex_sessions, "CODEX_STATE_DB", db),
+                mock.patch.object(Path, "cwd", return_value=tmp_path),
+                mock.patch.dict(os.environ, {"CODEX_THREAD_ID": "other"}, clear=True),
+            ):
+                result = server_codex.current_session_energy(CurrentSessionEnergyInput(codex_thread_id="wanted"))
+
+            self.assertEqual(result.session_id, "wanted")
+
+    def test_current_session_energy_input_allows_a_missing_id_for_fallbacks(self):
+        """Clients may omit the ID only when they cannot obtain the active task ID."""
+        self.assertIsNone(CurrentSessionEnergyInput().codex_thread_id)
+
+    def test_current_session_energy_falls_back_to_cwd_when_env_var_unset(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tmp_path = Path(directory)
+            rollout = tmp_path / "rollout-thread.jsonl"
+            _write_rollout(rollout, "response")
+            db = tmp_path / "state.sqlite"
+            _create_thread_db(db, [("thread", str(tmp_path), str(rollout))])
+
+            with (
+                mock.patch.object(codex_sessions, "CODEX_STATE_DB", db),
+                mock.patch.object(Path, "cwd", return_value=tmp_path),
+                mock.patch.dict(os.environ, {}, clear=True),
+            ):
+                result = server_codex.current_session_energy()
+
+            self.assertEqual(result.session_id, "thread")
+
+    def test_current_session_energy_errors_without_env_var_or_cwd_match(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tmp_path = Path(directory)
+            db = tmp_path / "does-not-exist.sqlite"
+
+            with (
+                mock.patch.object(codex_sessions, "CODEX_STATE_DB", db),
+                mock.patch.dict(os.environ, {}, clear=True),
+                self.assertRaises(ToolError),
+            ):
+                server_codex.current_session_energy()
 
     def test_collate_project_sessions_uses_only_current_codex_cwd(self):
         with tempfile.TemporaryDirectory() as directory:

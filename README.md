@@ -50,7 +50,7 @@ Example output:
 
 Both tools return a typed, field-described [pydantic](https://docs.pydantic.dev/) model (`src/mcps/schema.py`), so MCP clients get a real JSON schema for the response shape rather than an untyped object. If a session/project can't be found, the tool raises a proper MCP tool error instead of returning a disguised "successful" result.
 
-On the Claude Code server, `current_session_energy` identifies "this chat" via the `CLAUDE_CODE_SESSION_ID` environment variable that Claude Code sets on every process it launches (including the server). On the Codex server, it's identified via the `CODEX_THREAD_ID` environment variable, resolved to a rollout file through Codex's `state_5.sqlite` thread index (falling back to a filename scan under `~/.codex/sessions/` if the thread isn't indexed). Either tool's `collate_project_sessions_energy` then sums every other session belonging to the current project — every sibling `.jsonl` for Claude Code, every indexed thread with a matching `cwd` for Codex.
+On the Claude Code server, `current_session_energy` identifies "this chat" via the `CLAUDE_CODE_SESSION_ID` environment variable that Claude Code sets on every process it launches (including the server). Codex doesn't set an equivalent env var for MCP subprocesses it spawns, so the Codex server checks `CODEX_THREAD_ID` opportunistically and otherwise falls back to the most-recently-modified indexed thread whose recorded `cwd` matches the server's — a best-effort heuristic that's right unless you have multiple Codex chats open in the same project directory at once. Either tool's `collate_project_sessions_energy` then sums every other session belonging to the current project — every sibling `.jsonl` for Claude Code, every indexed thread with a matching `cwd` for Codex.
 
 ## Install
 
@@ -66,10 +66,12 @@ This installs console-script entry points (`carbon-tracking-stdio-claude`, `carb
 
 Register whichever server(s) you use **globally**, so they're available in every project rather than just this one.
 
+Use `uv run --project` (not `--directory`) to launch them: `--directory` changes the subprocess's working directory to this repo before running, which breaks `collate_project_sessions_energy()`'s cwd-based "which project is this?" scoping for every *other* project you use these servers from. `--project` only points uv at this repo for dependency resolution and leaves the subprocess's cwd alone.
+
 ### Claude Code
 
 ```bash
-claude mcp add --scope user carbon-tracking-energy-claude -- uv run --directory /path/to/carbon-tracking-mcp carbon-tracking-stdio-claude
+claude mcp add --scope user carbon-tracking-energy-claude -- uv run --project /path/to/carbon-tracking-mcp carbon-tracking-stdio-claude
 ```
 
 Restart or start a new session and the tools become available. Verify with:
@@ -81,7 +83,7 @@ claude mcp get carbon-tracking-energy-claude
 ### Codex
 
 ```bash
-codex mcp add carbon-tracking-energy-codex -- uv run --directory /path/to/carbon-tracking-mcp carbon-tracking-stdio-codex
+codex mcp add carbon-tracking-energy-codex -- uv run --project /path/to/carbon-tracking-mcp carbon-tracking-stdio-codex
 ```
 
 `codex mcp add` writes to `~/.codex/config.toml`, which Codex CLI, the IDE extension, and the desktop app all share — there's no per-project scope to choose, so this is global by default. Restart or start a new session and check `/mcp` inside Codex to verify the server is connected. Alternatively, add the entry by hand:
@@ -89,8 +91,10 @@ codex mcp add carbon-tracking-energy-codex -- uv run --directory /path/to/carbon
 ```toml
 [mcp_servers.carbon-tracking-energy-codex]
 command = "uv"
-args = ["run", "--directory", "/path/to/carbon-tracking-mcp", "carbon-tracking-stdio-codex"]
+args = ["run", "--project", "/path/to/carbon-tracking-mcp", "carbon-tracking-stdio-codex"]
 ```
+
+Codex won't reliably call the tools on its own unless you also tell it to: append this repo's [AGENTS.md](AGENTS.md) to your global `~/.codex/AGENTS.md` (create the file if it doesn't exist yet). That's a separate, global instructions file Codex reads in every project — without it, Codex only calls these tools when you explicitly say "use the MCP".
 
 ## Standalone CLI
 

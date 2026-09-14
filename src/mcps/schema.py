@@ -9,6 +9,18 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 
+class CurrentSessionEnergyInput(BaseModel):
+    codex_thread_id: str | None = Field(
+        default=None,
+        description=(
+            "The active Codex task's ID. Codex clients must retrieve their current task ID before calling "
+            "current_session_energy and pass it here; this is the first and most reliable identification method. "
+            "Leave unset only when the client genuinely cannot obtain its task ID, in which case the server uses "
+            "environment and working-directory fallbacks."
+        ),
+    )
+
+
 class CO2Comparison(BaseModel):
     id: str = Field(
         description="Stable identifier for the comparison activity (matches an entry in carbon_equivalents.json)."

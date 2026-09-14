@@ -44,7 +44,11 @@ def _current_claude_project_dir() -> Path | None:
 
 @mcp.tool()
 def current_session_energy() -> SessionEnergyResult:
-    """Estimated energy (kWh) and CO2eq for the calling Claude Code session."""
+    """Estimated energy (kWh) and CO2eq for the calling Claude Code session.
+
+    Call this proactively whenever the user asks about this chat's energy or
+    carbon footprint -- don't wait for them to say "use the MCP".
+    """
     session_id = os.environ.get("CLAUDE_CODE_SESSION_ID")
     if not session_id:
         raise ToolError("CLAUDE_CODE_SESSION_ID is not set.")
@@ -59,7 +63,11 @@ def current_session_energy() -> SessionEnergyResult:
 
 @mcp.tool()
 def collate_project_sessions_energy() -> CollatedEnergyResult:
-    """Total + per-session energy and CO2eq for every Claude Code chat in the current project."""
+    """Total + per-session energy and CO2eq for every Claude Code chat in the current project.
+
+    Call this proactively whenever the user asks about this project's total
+    energy or carbon footprint -- don't wait for them to say "use the MCP".
+    """
     project_dir = _current_claude_project_dir()
     if not project_dir:
         raise ToolError("Could not determine the current project's Claude Code session directory.")
