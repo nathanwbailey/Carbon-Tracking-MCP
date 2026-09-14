@@ -1,8 +1,8 @@
-# carbon-tracking-energy-codex MCP
+# carbon-impact-codex MCP
 
 When asked about this chat's or project's energy use, power use, or carbon/CO2
 footprint (e.g. "what's the carbon cost of this chat?", "how much energy has
-this session used?"), call the `carbon-tracking-energy-codex` MCP tools
+this session used?"), call the `carbon-impact-codex` MCP tools
 directly -- don't wait for the user to say "using the MCP" or name the tool.
 
 - `current_session_energy` -- this one chat.

@@ -31,7 +31,7 @@ from mcps.energy_estimate import estimate_session_from_file
 from mcps.mcp_results import collated_energy_result, session_energy_result
 from mcps.schema import CollatedEnergyResult, CurrentSessionEnergyInput, SessionEnergyResult, SessionSummary
 
-mcp = FastMCP("carbon-tracking-energy-codex")
+mcp = FastMCP("carbon-impact-codex")
 
 
 @mcp.tool()

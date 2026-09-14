@@ -29,7 +29,7 @@ from mcps.energy_estimate import estimate_session_from_file
 from mcps.mcp_results import collated_energy_result, session_energy_result
 from mcps.schema import CollatedEnergyResult, SessionEnergyResult, SessionSummary
 
-mcp = FastMCP("carbon-tracking-energy-claude")
+mcp = FastMCP("carbon-impact-claude")
 
 
 def _current_claude_project_dir() -> Path | None:
